@@ -1,0 +1,36 @@
+# render.yaml
+# This file provides the blueprint for deploying the application on Render.
+# Render will automatically detect this file and set up the service accordingly.
+
+services:
+  - type: web
+    name: ai-chatbot-service
+    # Use the Node runtime for our serverless function and build process
+    runtime: node
+    plan: free # Use the free instance type
+    
+    # Commands to build the service
+    buildCommand: npm install && npm run build
+    
+    # This service hosts static files and has serverless functions, so no start command is needed.
+    # Render's Node.js runtime will automatically detect and serve files from the /api directory.
+
+    # Specify the directory containing the built static assets (our React app)
+    staticPublishPath: ./dist
+
+    # Rewrite rules to correctly handle Single Page Application (SPA) routing and API calls
+    routes:
+      # Requests to /api/* are handled by our serverless functions
+      - type: rewrite
+        source: /api/(.*)
+        destination: /api/$1
+      # All other requests are rewritten to the main index.html file for client-side routing
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+    # Environment variables can be set here or in the Render dashboard.
+    # The GEMINI_API_KEY should be set in the dashboard for security.
+    envVars:
+      - key: NODE_VERSION
+        value: 20 # Specify a recent Node.js version
